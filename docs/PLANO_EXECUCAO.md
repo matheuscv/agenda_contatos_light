@@ -133,14 +133,14 @@ Criar e editar contatos via modal, com validação, sem erros no console. Lista 
 
 ### Tarefas
 
-- [ ] 5.1 Adicionar `AlertDialog` de confirmação ao `ContactsTable`
+- [x] 5.1 Adicionar `AlertDialog` de confirmação ao `ContactsTable`
   - Dispara ao clicar em "Excluir"
   - Exibe: "Tem certeza que deseja excluir **{nome}**? Esta ação não pode ser desfeita."
   - Botões: Cancelar / Excluir (vermelho)
-- [ ] 5.2 Conectar confirmação ao `DELETE /api/contacts/:id`
-  - Estado de loading no botão durante a chamada
+- [x] 5.2 Conectar confirmação ao `DELETE /api/contacts/:id`
+  - Estado de loading no botão durante a chamada ("Excluindo...")
   - Refetch da lista após sucesso
-  - Exibir toast/mensagem de erro caso a exclusão falhe
+  - Toast de erro via sonner caso a exclusão falhe
 
 ### Critério de conclusão
 Excluir contato exibe confirmação, remove da lista e atualiza o datagrid.

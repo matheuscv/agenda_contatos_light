@@ -9,7 +9,18 @@ import {
 } from "@tanstack/react-table";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,7 +38,7 @@ interface ContactsTableProps {
   loading: boolean;
   onNew: () => void;
   onEdit: (contact: Contact) => void;
-  onDelete: (contact: Contact) => void;
+  onDelete: () => void;
 }
 
 function formatDate(iso?: string | null) {
@@ -43,6 +54,28 @@ export function ContactsTable({
   onDelete,
 }: ContactsTableProps) {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [contactToDelete, setContactToDelete] = useState<Contact | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleConfirmDelete() {
+    if (!contactToDelete) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/contacts/${contactToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Erro ao excluir contato");
+      }
+      setContactToDelete(null);
+      onDelete();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao excluir contato");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   const columns: ColumnDef<Contact>[] = [
     {
@@ -84,7 +117,7 @@ export function ContactsTable({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onDelete(row.original)}
+            onClick={() => setContactToDelete(row.original)}
             aria-label="Excluir contato"
             className="text-destructive hover:text-destructive"
           >
@@ -179,6 +212,31 @@ export function ContactsTable({
           </TableBody>
         </Table>
       </div>
+      <AlertDialog
+        open={!!contactToDelete}
+        onOpenChange={(open) => !open && setContactToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir contato</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir{" "}
+              <strong>{contactToDelete?.nome}</strong>? Esta ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

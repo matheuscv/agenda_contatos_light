@@ -46,7 +46,7 @@ export default function Home() {
         loading={loading}
         onNew={() => setDialog({ open: true, mode: "create" })}
         onEdit={(contact) => setDialog({ open: true, mode: "edit", contact })}
-        onDelete={() => {}}
+        onDelete={fetchContacts}
       />
       <ContactDialog
         mode={dialog.mode}
