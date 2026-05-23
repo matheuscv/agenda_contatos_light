@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { toast } from "sonner";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -83,12 +85,15 @@ export function ContactDialog({
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setServerError(body.error ?? "Erro ao salvar contato. Tente novamente.");
+      const msg = body.error ?? "Erro ao salvar contato. Tente novamente.";
+      setServerError(msg);
+      toast.error(msg);
       return;
     }
 
     onOpenChange(false);
     onSuccess();
+    toast.success(mode === "create" ? "Contato criado" : "Contato atualizado");
   }
 
   return (

@@ -70,6 +70,7 @@ export function ContactsTable({
       }
       setContactToDelete(null);
       onDelete();
+      toast.success("Contato excluído");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao excluir contato");
     } finally {
@@ -159,7 +160,7 @@ export function ContactsTable({
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (

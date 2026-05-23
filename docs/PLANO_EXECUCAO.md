@@ -153,18 +153,15 @@ Excluir contato exibe confirmação, remove da lista e atualiza o datagrid.
 
 ### Tarefas
 
-- [ ] 6.1 Adicionar componente de toast para feedback de sucesso/erro
-  ```bash
-  npx shadcn@latest add sonner
-  ```
+- [x] 6.1 Adicionar componente de toast para feedback de sucesso/erro
   - Toasts de sucesso: "Contato criado", "Contato atualizado", "Contato excluído"
-  - Toasts de erro: mensagem genérica + log no console
-- [ ] 6.2 Estado de loading global na tabela (skeleton rows durante fetch inicial)
-- [ ] 6.3 Tratamento de erro na conexão com o MCP (ex: token inválido, servidor offline)
-  - API Routes retornam erro HTTP apropriado
-  - Frontend exibe mensagem amigável
-- [ ] 6.4 Revisão de responsividade básica (tabela scroll horizontal em mobile)
-- [ ] 6.5 Revisar acessibilidade básica (labels, aria, foco no dialog)
+  - Toasts de erro: mensagem do servidor + log no console (ContactDialog inline + toast; delete só toast)
+- [x] 6.2 Estado de loading global na tabela (skeleton rows durante fetch inicial)
+- [x] 6.3 Tratamento de erro na conexão com o MCP (ex: token inválido, servidor offline)
+  - API Routes retornam erro HTTP 500 com mensagem
+  - Frontend exibe mensagem amigável + botão "Tentar novamente" via estado fetchError em page.tsx
+- [x] 6.4 Revisão de responsividade básica (overflow-x-auto no container da tabela)
+- [x] 6.5 Revisar acessibilidade básica (lang="pt-BR" no html, labels+htmlFor, aria-label nos botões de ação, autoFocus no primeiro campo do dialog)
 
 ### Critério de conclusão
 `npm run build` sem erros. UX com feedback visual em todos os fluxos.
