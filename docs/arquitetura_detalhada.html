@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arquitetura da Agenda de Contatos</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      line-height: 1.7;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 2.5rem 0 1rem;
+      color: #0f172a;
+      border-left: 4px solid #6366f1;
+      padding-left: 0.75rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.5rem;
+      color: #1e293b;
+    }
+
+    p { margin-bottom: 0.75rem; }
+
+    /* Diagrama de fluxo */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 2rem 0;
+    }
+
+    .layer {
+      width: 100%;
+      max-width: 680px;
+      border: 2px solid;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .layer-browser  { border-color: #6366f1; background: #eef2ff; }
+    .layer-server   { border-color: #0ea5e9; background: #e0f2fe; }
+    .layer-mcp-lib  { border-color: #10b981; background: #d1fae5; }
+    .layer-external { border-color: #f59e0b; background: #fef3c7; }
+
+    .layer-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .layer-browser  .layer-title { color: #4338ca; }
+    .layer-server   .layer-title { color: #0369a1; }
+    .layer-mcp-lib  .layer-title { color: #047857; }
+    .layer-external .layer-title { color: #b45309; }
+
+    .layer-body {
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    .layer-body ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .layer-body ul li::before {
+      content: "· ";
+      font-weight: 700;
+    }
+
+    .arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      margin: 4px 0;
+    }
+
+    .arrow-line {
+      width: 2px;
+      height: 20px;
+      background: #94a3b8;
+    }
+
+    .arrow-head {
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid #94a3b8;
+    }
+
+    .arrow-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    /* Blocos de código */
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      margin: 1rem 0;
+    }
+
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    pre code { color: inherit; }
+
+    .kw  { color: #c084fc; }
+    .fn  { color: #67e8f9; }
+    .str { color: #86efac; }
+    .cm  { color: #64748b; font-style: italic; }
+    .num { color: #fb923c; }
+
+    /* Tabela */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #1e293b;
+      color: #f1f5f9;
+      text-align: left;
+      padding: 0.6rem 1rem;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    tr:nth-child(even) td { background: #f1f5f9; }
+
+    /* Callout */
+    .callout {
+      border-left: 4px solid #6366f1;
+      background: #eef2ff;
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    .callout strong { color: #4338ca; }
+
+    /* Seção numerada */
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin: 1.25rem 0;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #6366f1;
+      color: white;
+      font-weight: 700;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-body { flex: 1; }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Arquitetura da Agenda de Contatos</h1>
+  <p class="subtitle">Como um frontend Next.js se integra a um servidor MCP externo de forma segura.</p>
+
+  <!-- ─── O problema ─────────────────────────────────── -->
+  <h2>O problema central</h2>
+  <p>O browser <strong>não consegue falar diretamente com o servidor MCP</strong>. Dois motivos:</p>
+  <ul style="margin: 0.5rem 0 0.75rem 1.5rem;">
+    <li><strong>CORS</strong> — o servidor MCP externo não permite chamadas de origens aleatórias.</li>
+    <li><strong>Segurança</strong> — a <code>MCP_API_KEY</code> não pode ficar exposta no bundle JavaScript que o browser baixa.</li>
+  </ul>
+  <p>A solução é colocar um <strong>intermediário servidor</strong> no meio.</p>
+
+  <!-- ─── Diagrama de fluxo ──────────────────────────── -->
+  <h2>O fluxo completo</h2>
+
+  <div class="flow">
+    <div class="layer layer-browser">
+      <div class="layer-title">Browser (cliente)</div>
+      <div class="layer-body">
+        <ul>
+          <li>React / Next.js — componentes client</li>
+          <li><code>page.tsx</code> · <code>ContactsTable</code> · <code>ContactDialog</code></li>
+          <li>Faz <code>fetch("/api/contacts")</code> — URL relativa, mesma origem</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+      <div class="arrow-label">HTTP / JSON (mesma origem — sem CORS)</div>
+    </div>
+
+    <div class="layer layer-server">
+      <div class="layer-title">API Routes Next.js — roda no servidor Vercel</div>
+      <div class="layer-body">
+        <ul>
+          <li><code>/api/contacts</code> → GET listar · POST criar</li>
+          <li><code>/api/contacts/[id]</code> → PUT editar · DELETE excluir</li>
+          <li>Aqui vivem <code>MCP_SERVER_URL</code> e <code>MCP_API_KEY</code> (variáveis de ambiente secretas)</li>
+          <li>Chama <code>callTool()</code> de <code>lib/mcp.ts</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+      <div class="arrow-label">Protocolo MCP — SSE / HTTP · Authorization: Bearer &lt;token&gt;</div>
+    </div>
+
+    <div class="layer layer-mcp-lib">
+      <div class="layer-title">lib/mcp.ts — cliente MCP (SDK)</div>
+      <div class="layer-body">
+        <ul>
+          <li>Instancia <code>Client</code> do <code>@modelcontextprotocol/sdk</code></li>
+          <li>Conecta via <code>StreamableHTTPClientTransport</code> (ou SSE como fallback)</li>
+          <li>Invoca a tool, fecha a conexão, retorna o resultado como JSON</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="arrow">
+      <div class="arrow-line"></div>
+      <div class="arrow-head"></div>
+      <div class="arrow-label">Invocação de tool autenticada</div>
+    </div>
+
+    <div class="layer layer-external">
+      <div class="layer-title">Servidor MCP externo — contatos-mcp.onrender.com</div>
+      <div class="layer-body">
+        <ul>
+          <li>Expõe tools: <code>listar_contatos</code> · <code>criar_contato</code> · <code>atualizar_contato</code> · <code>excluir_contato</code></li>
+          <li>Valida o Bearer token em cada chamada</li>
+          <li>Banco de dados real fica aqui — a aplicação não tem BD próprio</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Cada camada ────────────────────────────────── -->
+  <h2>Cada camada em detalhe</h2>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h3>Frontend (browser)</h3>
+      <p>São componentes React normais. Não sabem nada sobre MCP — só fazem <code>fetch</code> para URLs da própria aplicação:</p>
+<pre><code><span class="cm">// Lista contatos</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/contacts"</span>);
+
+<span class="cm">// Cria contato</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/contacts"</span>, { method: <span class="str">"POST"</span>, body: ... });
+
+<span class="cm">// Exclui contato</span>
+<span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">"/api/contacts/42"</span>, { method: <span class="str">"DELETE"</span> });</code></pre>
+      <p>O browser acha que está falando com a própria aplicação. O MCP é completamente invisível para ele.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h3>API Routes (proxy servidor)</h3>
+      <p>São funções Node.js que rodam <strong>no servidor da Vercel</strong>, nunca no browser. Recebem a chamada do frontend e traduzem para o protocolo MCP:</p>
+<pre><code><span class="cm">// app/api/contacts/route.ts</span>
+<span class="kw">export async function</span> <span class="fn">GET</span>() {
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">callTool</span>(<span class="str">"listar_contatos"</span>, {});
+  <span class="kw">return</span> NextResponse.<span class="fn">json</span>(data);
+}
+
+<span class="kw">export async function</span> <span class="fn">POST</span>(request: Request) {
+  <span class="kw">const</span> { nome, email, empresa } = <span class="kw">await</span> request.<span class="fn">json</span>();
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">callTool</span>(<span class="str">"criar_contato"</span>, { nome, email });
+  <span class="kw">if</span> (empresa &amp;&amp; data?.id)
+    <span class="kw">await</span> <span class="fn">callTool</span>(<span class="str">"atualizar_contato"</span>, { id: data.id, empresa });
+  <span class="kw">return</span> NextResponse.<span class="fn">json</span>(data, { status: <span class="num">201</span> });
+}</code></pre>
+      <p>É aqui que a <code>MCP_API_KEY</code> é usada — ela existe apenas neste ambiente de servidor, nunca chega ao browser.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h3>lib/mcp.ts (cliente MCP)</h3>
+      <p>É o "tradutor de protocolo". Recebe um nome de tool + argumentos e cuida de toda a comunicação com o servidor MCP:</p>
+<pre><code><span class="kw">export async function</span> <span class="fn">callTool</span>(name: <span class="fn">string</span>, args = {}) {
+  <span class="kw">const</span> client = <span class="kw">new</span> <span class="fn">Client</span>({ name: <span class="str">"agenda-contatos"</span>, version: <span class="str">"1.0.0"</span> });
+  <span class="kw">await</span> client.<span class="fn">connect</span>(transport);           <span class="cm">// handshake MCP</span>
+  <span class="kw">const</span> result = <span class="kw">await</span> client.<span class="fn">callTool</span>({ name, arguments: args });
+  <span class="kw">await</span> client.<span class="fn">close</span>();                        <span class="cm">// fecha — serverless friendly</span>
+  <span class="kw">return</span> JSON.<span class="fn">parse</span>(result.content[<span class="num">0</span>].text);  <span class="cm">// retorna dado limpo</span>
+}</code></pre>
+      <p>O SDK <code>@modelcontextprotocol/sdk</code> cuida do handshake, do formato das mensagens e do transporte — nós só chamamos <code>callTool()</code>.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h3>Servidor MCP externo</h3>
+      <p>É um servidor independente (hospedado no Render.com) que expõe <strong>ferramentas</strong> no lugar de endpoints REST tradicionais. Ele tem o banco de dados real e valida o token de autenticação em cada chamada.</p>
+      <p>As tools disponíveis foram descobertas em desenvolvimento via <code>client.listTools()</code> e mapeadas nas API Routes:</p>
+      <table>
+        <thead>
+          <tr><th>Rota Next.js</th><th>Método</th><th>Tool MCP</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/api/contacts</code></td><td>GET</td><td><code>listar_contatos</code></td></tr>
+          <tr><td><code>/api/contacts</code></td><td>POST</td><td><code>criar_contato</code> + <code>atualizar_contato</code></td></tr>
+          <tr><td><code>/api/contacts/[id]</code></td><td>PUT</td><td><code>atualizar_contato</code></td></tr>
+          <tr><td><code>/api/contacts/[id]</code></td><td>DELETE</td><td><code>excluir_contato</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Por que funciona ───────────────────────────── -->
+  <h2>Por que esse padrão funciona bem</h2>
+
+  <table>
+    <thead>
+      <tr><th>Problema</th><th>Solução adotada</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>MCP_API_KEY</code> não pode ir ao browser</td>
+        <td>Fica só nas API Routes (variável de ambiente de servidor)</td>
+      </tr>
+      <tr>
+        <td>CORS bloqueia chamadas diretas ao MCP</td>
+        <td>Browser fala só com <code>/api/*</code> — mesma origem, sem CORS</td>
+      </tr>
+      <tr>
+        <td>Protocolo MCP é complexo (SSE, handshake)</td>
+        <td>SDK encapsula tudo em uma única função <code>callTool()</code></td>
+      </tr>
+      <tr>
+        <td>Vercel é serverless — sem conexão persistente</td>
+        <td><code>callTool()</code> abre e fecha a conexão a cada chamada</td>
+      </tr>
+      <tr>
+        <td>MCP rejeitava <code>empresa</code> na criação</td>
+        <td>Criamos o contato sem o campo e fazemos um PUT imediato</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ─── Resumo ─────────────────────────────────────── -->
+  <h2>Resumo em uma frase</h2>
+
+  <div class="callout">
+    O <strong>browser fala HTTP comum</strong> com as API Routes do Next.js; as API Routes falam
+    <strong>protocolo MCP</strong> com o servidor externo usando uma chave secreta —
+    o frontend nunca vê nem a chave nem o protocolo.
+  </div>
+
+  <footer>
+    Agenda de Contatos Light · docs/arquitetura_detalhada.html · gerado em 2026-05-22
+  </footer>
+
+</div>
+</body>
+</html>
