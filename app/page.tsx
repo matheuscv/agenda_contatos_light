@@ -2,12 +2,23 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { ContactDialog } from "@/components/contact-dialog";
 import { ContactsTable } from "@/components/contacts-table";
 import { Contact } from "@/lib/types";
+
+type DialogState = {
+  open: boolean;
+  mode: "create" | "edit";
+  contact?: Contact;
+};
 
 export default function Home() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dialog, setDialog] = useState<DialogState>({
+    open: false,
+    mode: "create",
+  });
 
   const fetchContacts = useCallback(async () => {
     setLoading(true);
@@ -33,9 +44,16 @@ export default function Home() {
       <ContactsTable
         contacts={contacts}
         loading={loading}
-        onNew={() => {}}
-        onEdit={() => {}}
+        onNew={() => setDialog({ open: true, mode: "create" })}
+        onEdit={(contact) => setDialog({ open: true, mode: "edit", contact })}
         onDelete={() => {}}
+      />
+      <ContactDialog
+        mode={dialog.mode}
+        contact={dialog.contact}
+        open={dialog.open}
+        onOpenChange={(open) => setDialog((prev) => ({ ...prev, open }))}
+        onSuccess={fetchContacts}
       />
     </main>
   );

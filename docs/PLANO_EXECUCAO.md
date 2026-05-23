@@ -105,20 +105,18 @@ Página exibe o datagrid com contatos reais, filtro funcional e botões visívei
 
 ### Tarefas
 
-- [ ] 4.1 Instalar dependências de formulário
-  ```bash
-  npm install react-hook-form zod @hookform/resolvers
-  ```
-- [ ] 4.2 Criar `components/contact-dialog.tsx`
+- [x] 4.1 Instalar dependências de formulário
+- [x] 4.2 Criar `components/contact-dialog.tsx`
   - Props: `mode: "create" | "edit"`, `contact?: Contact`, `open: boolean`, `onOpenChange`, `onSuccess`
-  - Campos: Nome, Email, Empresa, Data, Telefone
+  - Campos: Nome, Email, Empresa, Telefone, Observações
   - Validação com zod (nome e email obrigatórios)
   - Submit:
     - `mode="create"` → `POST /api/contacts`
     - `mode="edit"` → `PUT /api/contacts/:id`
   - Fecha o dialog e chama `onSuccess()` após resposta de sucesso
-  - Exibe estado de loading no botão durante o submit
-- [ ] 4.3 Conectar ContactDialog ao ContactsTable
+  - Exibe estado de loading no botão durante o submit ("Salvando...")
+  - Exibe erro de servidor abaixo do formulário quando a chamada falha
+- [x] 4.3 Conectar ContactDialog ao ContactsTable
   - Estado `dialogState: { open, mode, contact? }` em `page.tsx`
   - Botão "+ Novo" → abre em `mode="create"`
   - Botão "Editar" → abre em `mode="edit"` com dados da linha
