@@ -174,19 +174,14 @@ Excluir contato exibe confirmação, remove da lista e atualiza o datagrid.
 
 ### Tarefas
 
-- [ ] 7.1 Criar repositório Git e commitar o projeto
-  ```bash
-  git init
-  git add .
-  git commit -m "feat: initial implementation"
-  ```
-- [ ] 7.2 Fazer push para GitHub
-- [ ] 7.3 Importar repositório na Vercel (vercel.com/new)
-- [ ] 7.4 Configurar variáveis de ambiente na Vercel
-  - `MCP_SERVER_URL=https://contatos-mcp.onrender.com`
-  - `MCP_API_KEY=<token>`
-- [ ] 7.5 Acionar deploy e aguardar conclusão
-- [ ] 7.6 Smoke test em produção: listar, criar, editar, excluir
+- [x] 7.1 Criar repositório Git e commitar o projeto
+- [x] 7.2 Fazer push para GitHub — https://github.com/matheuscv/agenda_contatos_light
+- [x] 7.3 Linkar projeto na Vercel via CLI (`vercel link --yes`)
+- [x] 7.4 Configurar variáveis de ambiente na Vercel
+  - `MCP_SERVER_URL=https://contatos-mcp.onrender.com` ✓
+  - `MCP_API_KEY=<token>` ✓
+- [x] 7.5 Deploy de produção — `vercel --prod` — build em 30s, status READY
+- [x] 7.6 Smoke test em produção: GET /api/contacts retorna 6 contatos reais; UI carrega corretamente
 
 ### Critério de conclusão
 URL pública da Vercel com todos os fluxos funcionando contra o MCP de produção.
