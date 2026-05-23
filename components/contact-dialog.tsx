@@ -19,11 +19,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Contact } from "@/lib/types";
 
+// Aplica máscara de telefone brasileiro: (XX) XXXXX-XXXX
+function formatPhone(value: string): string {
+  const d = value.replace(/\D/g, "").slice(0, 11);
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
+const phoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+
 const schema = z.object({
   nome: z.string().min(1, "Nome é obrigatório"),
   email: z.string().min(1, "Email é obrigatório").email("Email inválido"),
   empresa: z.string().optional(),
-  telefone: z.string().optional(),
+  telefone: z
+    .string()
+    .refine((v) => !v || phoneRegex.test(v), "Formato: (XX) XXXXX-XXXX")
+    .optional(),
   observacoes: z.string().optional(),
 });
 
@@ -129,7 +144,19 @@ export function ContactDialog({
 
           <div className="space-y-1">
             <Label htmlFor="telefone">Telefone</Label>
-            <Input id="telefone" {...register("telefone")} />
+            <Input
+              id="telefone"
+              placeholder="(XX) XXXXX-XXXX"
+              {...register("telefone")}
+              onChange={(e) => {
+                const masked = formatPhone(e.target.value);
+                e.target.value = masked;
+                register("telefone").onChange(e);
+              }}
+            />
+            {errors.telefone && (
+              <p className="text-sm text-destructive">{errors.telefone.message}</p>
+            )}
           </div>
 
           <div className="space-y-1">
